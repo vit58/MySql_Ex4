@@ -1,0 +1,114 @@
+use vk;
+show TABLES;
+
+-- Таблица users
+select * from users limit 100;
+select  * from users where created_at > update_at;-- Используем фильтр для поиска дат update более ранних чем дата created
+update users set update_at = NOW() where created_at > update_at; -- Запрос на ОБНОВЛЕНИЕ
+
+
+-- Таблица profiles
+select * from profiles limit 10;
+select  * from profiles where created_at > update_at;-- Используем фильтр для поиска дат update более ранних чем дата created
+update profiles set update_at = NOW() where created_at > update_at; -- Запрос на ОБНОВЛЕНИЕ
+-- update profiles set gender = '';
+-- CREATE temporary table genders (name CHAR(1));
+-- insert into genders values ('F'), ('M');
+-- select * from genders;
+-- select name from genders order BY RAND() limit 1; -- Получить значения пола F и M случайным образом
+-- update profiles set gender = (select name from genders order BY RAND() limit 1); -- Запрос на ОБНОВЛЕНИЕ
+
+
+-- Таблица messages
+select * from messages limit 10;
+-- select FLOOR (1 + RAND() * 100);-- Генерация случайного целого числа RAND(). FLOOR-избавляет от дробной части.
+-- update messages set -- Запрос на обновление
+-- from_user_id = FLOOR (1 + RAND() * 100),
+-- to_user_id = FLOOR (1 + RAND() * 100);
+-- Если from_user_id и to_user_id СЛУЧАЙНО СОВПАЛИ
+-- select * from messages where from_user_id = to_user_id;
+-- update messages set to_user_id = to_user_id + 1 where from_user_id = to_user_id;
+
+
+-- Таблица media
+select * from media limit 20;
+-- update media set
+-- user_id = FLOOR (1 + RAND() * 100);
+
+-- СТОЛБЕЦ filename 
+-- Где взять расширение? 
+-- http://dropbox.com/vk/filename.ext Прописываем путь: имяфайлаИЗтаблицы.случайное расширение
+CREATE temporary table extensions (name VARCHAR(10)); -- Создаем ВРЕМЕННУЮ таблицу
+insert into extensions values ('mp4'), ('mp3'), ('png'), ('avi');
+select * from extensions;-- Временная таблица расширений создана
+-- Компануем основной запрос 
+update media  set filename = concat(
+-- Функция concat объеденяет все свои параметры, перечисленные через ЗАПЯТУЮ в ОДНУ строку. Т.е. объеденяет 4 строки (см. следующие ниже) в одну.
+'http://dropbox.com/vk/',
+filename,
+'.',
+(select name from extensions order BY RAND() limit 1))-- строка расширения. Сами расширения см. во временной (extensions) таблице
+;
+
+-- СТОЛБЕЦ size
+-- update media set size = FLOOR (1000 + RAND() * 1000000000 where sise < 10000);-- Нижняя граница в байтах - sise < 10000)
+
+-- СТОЛБЕЦ metadata
+-- Сюда помещае любой объект.
+-- Должно получиться что-то вроде: '{"ouner": "Ferst Last"}', т.е. '{"КЛЮЧ": "ЗНАЧЕНИЕ - Имя Фамилия"}'
+update media set metadata = CONCAT(
+-- update media - запрос на обновление и вставляем (set) для столбца metadata ключ-значение ОДНУ строку из нескольких.
+'{"ouner": "',
+(select CONCAT(first_name, ' ', last_name) 
+from users where users.id = media.user_id),
+'"}'
+);
+select * from media limit 20;
+desc media; -- Просмотр структуры таблицы 
+alter table media modify COLUMN metadata JSON; -- См. 8-ю стр вебинара
+
+-- Таблица media_types, СТОЛБЕЦ media_types_id
+select * from media_types;
+delete from media_types;
+insert into media_types (name) values
+('image'),
+('audio'),
+('video');
+TRUNCATE media_types;
+update media set;
+media_type_id =FLOOR(1 + RAND() * 3);
+
+
+-- Таблица frendship
+select * from friendship limit 10;
+-- update friendship set
+-- user_id = FLOOR (1 + RAND() * 100),
+-- friend_id = FLOOR (1 + RAND() * 100);
+select * from friendshep_statuses;-- Видим 8 статусов. Много! Сделаем, и проименуем три
+TRUNCATE friendshep_statuses;
+insert into friendshep_statuses (name) values
+('Requested'),
+('Confirmed'),
+('Rejected');
+select * from friendship;
+update friendship set
+friend_status_id = FLOOR(1 + RAND() * 3);
+update friendship  set -- См. 11-ю стр вебинара
+confirmed_at = created_at,
+created_at = confirmed_at;
+-- WHERE user_id = 3 AND friend_id = 7;
+
+
+-- Таблица Групп (communities)
+select * from communities;
+-- DELETE from communities where id > 30;
+select * from communities;
+select  * from communities where created_at > update_at;-- Используем фильтр для поиска дат update более ранних чем дата created
+update communities set update_at = NOW() where created_at > update_at; -- Запрос на ОБНОВЛЕНИЕ
+
+
+-- Таблица Связи (communities_users)
+select * from communities_users;
+update communities_users set
+user_id = FLOOR (1 + RAND() * 100),
+communities_id = FLOOR (1 + RAND() * 30);
